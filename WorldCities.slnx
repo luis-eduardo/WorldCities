@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="worldcities.client/worldcities.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="WorldCities.Server/WorldCities.Server.csproj" />
+</Solution>
