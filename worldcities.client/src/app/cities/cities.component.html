@@ -3,35 +3,40 @@
 @if (!cities) {
   <em>Loading...</em>
 }
-<table mat-table [dataSource]="cities"
-       [hidden]="!cities"
-       class="mat-elevation-z8"
-       matSort (matSortChange)="loadData()"
-       [matSortActive]="defaultSortColumn"
-       [matSortDirection]="defaultSortOrder"
->
-  <ng-container matColumnDef="id">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-    <td mat-cell *matCellDef="let city">{{ city.id }}</td>
-  </ng-container>
-  <ng-container matColumnDef="name">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-    <td mat-cell *matCellDef="let city">{{ city.name }}</td>
-  </ng-container>
-  <ng-container matColumnDef="latitude">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>Latitude</th>
-    <td mat-cell *matCellDef="let city">{{ city.latitude }}</td>
-  </ng-container>
-  <ng-container matColumnDef="longitude">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>Longitude</th>
-    <td mat-cell *matCellDef="let city">{{ city.longitude }}</td>
-  </ng-container>
-  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-</table>
-<mat-paginator [hidden]="!cities"
-               (page)="getData($event)"
-               [pageSize]="10"
-               [pageSizeOptions]="[10, 20, 50]"
-               showFirstLastButtons>
-</mat-paginator>
+<div [hidden]="!cities">
+  <mat-form-field>
+    <input matInput #filter (keyup)="loadData(filter.value)"
+           placeholder="Filter by name (or part of it)..."
+    />
+  </mat-form-field>
+  <table mat-table [dataSource]="cities"
+         class="mat-elevation-z8"
+         matSort (matSortChange)="loadData()"
+         [matSortActive]="defaultSortColumn"
+         [matSortDirection]="defaultSortOrder"
+  >
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+      <td mat-cell *matCellDef="let city">{{ city.id }}</td>
+    </ng-container>
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+      <td mat-cell *matCellDef="let city">{{ city.name }}</td>
+    </ng-container>
+    <ng-container matColumnDef="latitude">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Latitude</th>
+      <td mat-cell *matCellDef="let city">{{ city.latitude }}</td>
+    </ng-container>
+    <ng-container matColumnDef="longitude">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Longitude</th>
+      <td mat-cell *matCellDef="let city">{{ city.longitude }}</td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <mat-paginator (page)="getData($event)"
+                 [pageSize]="10"
+                 [pageSizeOptions]="[10, 20, 50]"
+                 showFirstLastButtons>
+  </mat-paginator>
+</div>

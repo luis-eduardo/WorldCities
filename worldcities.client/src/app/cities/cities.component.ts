@@ -19,6 +19,8 @@ export class CitiesComponent implements OnInit {
   defaultPageSize: number = 10;
   public defaultSortColumn: string = "name";
   public defaultSortOrder: "asc" | "desc" = "asc";
+  defaultFilterColumn: string = "name";
+  filterQuery?: string;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -29,26 +31,17 @@ export class CitiesComponent implements OnInit {
     this.loadData();
   }
 
-  loadData() {
+  loadData(query?: string) {
     const pageEvent = new PageEvent();
     pageEvent.pageIndex = this.defaultPageIndex;
     pageEvent.pageSize = this.defaultPageSize;
+    this.filterQuery = query;
     this.getData(pageEvent);
   }
 
   getData(event: PageEvent) {
     const url = environment.baseUrl + 'api/cities';
-    const params = new HttpParams()
-      .set("pageIndex", event.pageIndex.toString())
-      .set("pageSize", event.pageSize.toString())
-      .set("sortColumn", (this.sort)
-        ? this.sort.active
-        : this.defaultSortColumn
-      )
-      .set("sortOrder", (this.sort)
-        ? this.sort.direction
-        : this.defaultSortOrder
-      );
+    const params = this.setParams(event);
 
     this.http.get<any>(url, { params })
       .subscribe({
@@ -60,5 +53,26 @@ export class CitiesComponent implements OnInit {
         },
         error: (error) => console.error(error)
       });
+  }
+
+  private setParams(event: PageEvent) {
+    let params = new HttpParams()
+      .set("pageIndex", event.pageIndex.toString())
+      .set("pageSize", event.pageSize.toString())
+      .set("sortColumn", (this.sort)
+        ? this.sort.active
+        : this.defaultSortColumn
+      )
+      .set("sortOrder", (this.sort)
+        ? this.sort.direction
+        : this.defaultSortOrder
+      );
+
+    if (this.filterQuery) {
+      params = params
+        .set("filterColumn", this.defaultFilterColumn)
+        .set("filterQuery", this.filterQuery);
+    }
+    return params;
   }
 }

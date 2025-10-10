@@ -12,6 +12,8 @@ public class ApiResult<T> : ApiResultBase<T>
     public int TotalPages { get; private set; }
     public string? SortColumn { get; private set; }
     public string? SortOrder { get; private set; }
+    public string? FilterColumn { get; private set; }
+    public string? FilterQuery { get; private set; }
     public bool HasPreviousPage
     {
         get
@@ -33,7 +35,9 @@ public class ApiResult<T> : ApiResultBase<T>
             int pageIndex,
             int pageSize,
             string? sortColumn,
-            string? sortOrder)
+            string? sortOrder,
+            string? filterColumn,
+            string? filterQuery)
     {
         Data = data;
         PageIndex = pageIndex;
@@ -42,6 +46,8 @@ public class ApiResult<T> : ApiResultBase<T>
         TotalPages = (int)Math.Ceiling(count / (double)pageSize);
         SortColumn = sortColumn;
         SortOrder = sortOrder;
+        FilterColumn = filterColumn;
+        FilterQuery = filterQuery;
     }
 
 
@@ -50,8 +56,12 @@ public class ApiResult<T> : ApiResultBase<T>
             int pageIndex,
             int pageSize,
             string? sortColumn = null,
-            string? sortOrder = null)
+            string? sortOrder = null,
+            string? filterColumn = null,
+            string? filterQuery = null)
     {
+        source = ApplyFilter(source, filterColumn, filterQuery);
+
         var count = await source.CountAsync();
 
         sortOrder = NormalizeSortOrder(sortOrder);
@@ -70,7 +80,22 @@ public class ApiResult<T> : ApiResultBase<T>
             pageIndex,
             pageSize,
             sortColumn,
-            sortOrder);
+            sortOrder,
+            filterColumn,
+            filterQuery);
+    }
+
+    private static IQueryable<T> ApplyFilter(IQueryable<T> source, string? filterColumn, string? filterQuery)
+    {
+        if (string.IsNullOrEmpty(filterColumn)
+            || string.IsNullOrEmpty(filterQuery)
+            || !IsValidProperty(filterColumn))
+        {
+            return source;
+        }
+
+        var clause = $"{filterColumn}.StartsWith(@0)";
+        return source.Where(clause, filterQuery);
     }
 
     private static IQueryable<T> ApplySorting(IQueryable<T> source, string? sortColumn, string? sortOrder)
@@ -80,11 +105,7 @@ public class ApiResult<T> : ApiResultBase<T>
             return source;
         }
 
-        var clause = string.Format(
-            "{0} {1}",
-            sortColumn,
-            sortOrder);
-
+        var clause = $"{sortColumn} {sortOrder}";
         return source.OrderBy(clause);
     }
 
