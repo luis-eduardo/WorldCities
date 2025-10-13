@@ -112,5 +112,18 @@ namespace WorldCities.Server.Controllers
         {
             return _context.Cities.Any(e => e.Id == id);
         }
+
+        [HttpPost]
+        [Route("IsDupeCity")]
+        public bool IsDupeCity(City city)
+        {
+            return _context.Cities.AsNoTracking().Any(c => 
+                c.Name == city.Name
+                && c.Latitude == city.Latitude
+                && c.Longitude == city.Longitude
+                && c.CountryId == city.CountryId
+                && c.Id != city.Id
+            );
+        }
     }
 }

@@ -1,0 +1,74 @@
+<div class="city-edit">
+  <h1>{{title}}</h1>
+  @if (id && !city) {
+    <p><em>Loading...</em></p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    @if (form.invalid && form.hasError('isDupeCity')) {
+      <p>
+        <mat-error>
+          <strong>ERROR</strong>
+          A city with the same <i>name</i>, <i>latitude</i>, <i>longitude</i> and <i>country</i> already exists.
+        </mat-error>
+      </p>
+    }
+
+    <mat-form-field>
+      <mat-label>Name:</mat-label>
+      <input matInput formControlName="name" required placeholder="Type a name">
+      @if (form.controls['name'].errors?.['required']) {
+        <mat-error>
+          Name is required.
+        </mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Latitude:</mat-label>
+      <input matInput formControlName="latitude" required placeholder="Insert latitude">
+      @if (form.controls['latitude'].errors?.['required']) {
+        <mat-error>
+          Latitude is required.
+        </mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Longitude:</mat-label>
+      <input matInput formControlName="longitude" required placeholder="Insert longitude">
+      @if (form.controls['longitude'].errors?.['required']) {
+        <mat-error>
+          Longitude is required.
+        </mat-error>
+      }
+    </mat-form-field>
+
+    @if (countries) {
+      <mat-form-field>
+        <mat-label>Select a Country...</mat-label>
+        <mat-select id="countryId" formControlName="countryId">
+          @for (country of countries; track country.id) {
+            <mat-option [value]="country.id">
+              {{ country.name }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (form.controls['countryId'].errors?.['required']) {
+          <mat-error>
+            Please select a Country.
+          </mat-error>
+        }
+      </mat-form-field>
+    }
+
+    <div>
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+        {{ this.id ? 'Save' : 'Create' }}
+      </button>
+      <button mat-flat-button color="secondary" [routerLink]="['/cities']">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
