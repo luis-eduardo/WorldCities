@@ -9,7 +9,7 @@
 </button>
 <div [hidden]="!countries">
   <mat-form-field>
-    <input matInput #filter (keyup)="loadData(filter.value)"
+    <input matInput #filter (keyup)="onFilterTextChanged(filter.value)"
            placeholder="Filter by name (or part of it)...">
   </mat-form-field>
   <table mat-table [dataSource]="countries"
