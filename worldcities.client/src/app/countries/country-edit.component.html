@@ -1,0 +1,71 @@
+<div class="country-edit">
+  <h1>{{ title }}</h1>
+  @if (id && !country) {
+    <p><em>Loading...</em></p>
+  }
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field>
+      <mat-label>Name:</mat-label>
+      <input matInput formControlName="name" required placeholder="Type a name">
+      @if (form.controls['name'].errors?.['required']) {
+        <mat-error>
+          Name is required.
+        </mat-error>
+      }
+      @if (form.controls['name'].errors?.['isDupeField']) {
+        <mat-error>
+          Name already exists: please choose another.
+        </mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>ISO 3166-1 ALPHA-2 Country code (2 letters)</mat-label>
+      <input matInput formControlName="iso2" required placeholder="Insert the ISO2 Country code">
+      @if (form.controls['iso2'].errors?.['required']) {
+        <mat-error>
+          ISO 3166-1 ALPHA-2 Country code is required.
+        </mat-error>
+      }
+      @if (form.controls['iso2'].errors?.['pattern']) {
+        <mat-error>
+          ISO3166-1 ALPHA-2 Country code requires 2 letters.
+        </mat-error>
+      }
+      @if (form.controls['iso2'].errors?.['isDupeField']) {
+        <mat-error>
+          This code already exists: please choose another.
+        </mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>ISO 3166-1 ALPHA-3 Country code (3 letters)</mat-label>
+      <input matInput formControlName="iso3" required placeholder="Insert the ISO3 Country code">
+      @if (form.controls['iso3'].errors?.['required']) {
+        <mat-error>
+          ISO 3166-1 ALPHA-3 Country code is required.
+        </mat-error>
+      }
+      @if (form.controls['iso3'].errors?.['pattern']) {
+        <mat-error>
+          ISO3166-1 ALPHA-3 Country code requires 3 letters.
+        </mat-error>
+      }
+      @if (form.controls['iso3'].errors?.['isDupeField']) {
+        <mat-error>
+          This code already exists: please choose another.
+        </mat-error>
+      }
+    </mat-form-field>
+
+    <div>
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+        {{ this.id ? "Save" : "Create" }}
+      </button>
+      <button mat-flat-button color="secondary" [routerLink]="['/countries']">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

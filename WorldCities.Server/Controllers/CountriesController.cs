@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Dynamic.Core;
 using WorldCities.Server.Data;
 using WorldCities.Server.Data.Models;
 
@@ -111,6 +112,25 @@ namespace WorldCities.Server.Controllers
         private bool CountryExists(int id)
         {
             return _context.Countries.Any(e => e.Id == id);
+        }
+
+        [HttpPost]
+        [Route("IsDupeField")]
+        public bool IsDupeField(
+            int countryId,
+            string fieldName,
+            string fieldValue)
+        {
+            if (!ApiResult<Country>.IsValidProperty(fieldName))
+            {
+                return false;
+            }
+
+            return _context.Countries.Any(
+                $"{fieldName} == @0 && Id != @1",
+                fieldValue,
+                countryId
+                );
         }
     }
 }
