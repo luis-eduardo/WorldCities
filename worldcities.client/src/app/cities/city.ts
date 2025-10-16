@@ -4,4 +4,5 @@ export interface City {
   latitude: number;
   longitude: number;
   countryId: number;
+  countryName: string;
 }

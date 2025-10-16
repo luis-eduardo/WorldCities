@@ -14,7 +14,7 @@ import {debounceTime, distinctUntilChanged, Subject} from 'rxjs';
   standalone: false,
 })
 export class CitiesComponent implements OnInit {
-  public displayedColumns: string[] = ['id', 'name', 'latitude', 'longitude'];
+  public displayedColumns: string[] = ['id', 'name', 'latitude', 'longitude', 'countryName'];
   public cities!: MatTableDataSource<City>;
   defaultPageIndex: number = 0;
   defaultPageSize: number = 10;
