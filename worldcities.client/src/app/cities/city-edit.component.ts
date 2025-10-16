@@ -6,6 +6,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map, Observable} from 'rxjs';
+import {BaseFormComponent} from '../base-form.component';
 
 @Component({
   selector: 'app-city-edit',
@@ -13,9 +14,9 @@ import {map, Observable} from 'rxjs';
   templateUrl: './city-edit.component.html',
   styleUrl: './city-edit.component.scss'
 })
-export class CityEditComponent implements OnInit {
+export class CityEditComponent
+  extends BaseFormComponent implements OnInit {
   title?: string;
-  form!: FormGroup;
   city?: City;
   id?: number;
   countries?: Country[];
@@ -25,17 +26,36 @@ export class CityEditComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
   ) {
+    super();
   }
 
   ngOnInit(): void {
-        this.form = new FormGroup({
-          name: new FormControl('', Validators.required),
-          latitude: new FormControl('', Validators.required),
-          longitude: new FormControl('', Validators.required),
-          countryId: new FormControl('', Validators.required),
-        }, null, this.isDupeCity());
+    const coordinateRegex = /^-?[0-9]+(\.[0-9]{1,4})?$/;
+    this.form = new FormGroup({
+      name: new FormControl('', Validators.required),
+      latitude: new FormControl('', [
+        Validators.required,
+        Validators.pattern(coordinateRegex),
+      ]),
+      longitude: new FormControl('', [
+        Validators.required,
+        Validators.pattern(coordinateRegex),
+      ]),
+      countryId: new FormControl('', Validators.required),
+    }, null, this.isDupeCity());
 
-        this.loadData();
+    const coordinateInvalidMessage = 'requires a positive or negative number with 0-4 decimal values.';
+
+    this.customMessages = {
+      'latitude': {
+        'pattern': coordinateInvalidMessage
+      },
+      'longitude': {
+        'pattern': coordinateInvalidMessage
+      }
+    }
+
+    this.loadData();
   }
 
   private loadData() {

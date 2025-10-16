@@ -17,9 +17,9 @@
     <mat-form-field>
       <mat-label>Name:</mat-label>
       <input matInput formControlName="name" required placeholder="Type a name">
-      @if (form.controls['name'].errors?.['required']) {
+      @for (error of getErrors('name', 'Name'); track error) {
         <mat-error>
-          Name is required.
+          {{error}}
         </mat-error>
       }
     </mat-form-field>
@@ -27,9 +27,9 @@
     <mat-form-field>
       <mat-label>Latitude:</mat-label>
       <input matInput formControlName="latitude" required placeholder="Insert latitude">
-      @if (form.controls['latitude'].errors?.['required']) {
+      @for (error of getErrors('latitude', 'Latitude'); track error) {
         <mat-error>
-          Latitude is required.
+          {{error}}
         </mat-error>
       }
     </mat-form-field>
@@ -37,9 +37,9 @@
     <mat-form-field>
       <mat-label>Longitude:</mat-label>
       <input matInput formControlName="longitude" required placeholder="Insert longitude">
-      @if (form.controls['longitude'].errors?.['required']) {
+      @for (error of getErrors('longitude', 'Longitude'); track error) {
         <mat-error>
-          Longitude is required.
+          {{error}}
         </mat-error>
       }
     </mat-form-field>
@@ -54,9 +54,9 @@
             </mat-option>
           }
         </mat-select>
-        @if (form.controls['countryId'].errors?.['required']) {
+        @for (error of getErrors('countryId', 'Country'); track error) {
           <mat-error>
-            Please select a Country.
+            {{error}}
           </mat-error>
         }
       </mat-form-field>

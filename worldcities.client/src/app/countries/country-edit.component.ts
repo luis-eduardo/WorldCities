@@ -5,6 +5,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map, Observable} from 'rxjs';
+import {BaseFormComponent} from '../base-form.component';
 
 @Component({
   selector: 'app-country-edit',
@@ -12,9 +13,9 @@ import {map, Observable} from 'rxjs';
   templateUrl: './country-edit.component.html',
   styleUrl: './country-edit.component.scss'
 })
-export class CountryEditComponent implements OnInit {
+export class CountryEditComponent
+  extends BaseFormComponent implements OnInit {
   title?: string;
-  form!: FormGroup;
   country?: Country;
   id?: number;
 
@@ -24,6 +25,7 @@ export class CountryEditComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
   ) {
+    super();
   }
 
   ngOnInit(): void {
@@ -47,6 +49,16 @@ export class CountryEditComponent implements OnInit {
         this.isDupeField("iso3")
       ]
     });
+
+    this.customMessages = {
+      'iso2': {
+        'pattern': 'requires 2 letters.'
+      },
+      'iso3': {
+        'pattern': 'requires 3 letters.'
+      }
+    }
+
     this.loadData();
   }
 

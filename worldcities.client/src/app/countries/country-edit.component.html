@@ -7,34 +7,17 @@
     <mat-form-field>
       <mat-label>Name:</mat-label>
       <input matInput formControlName="name" required placeholder="Type a name">
-      @if (form.controls['name'].errors?.['required']) {
-        <mat-error>
-          Name is required.
-        </mat-error>
-      }
-      @if (form.controls['name'].errors?.['isDupeField']) {
-        <mat-error>
-          Name already exists: please choose another.
-        </mat-error>
+      @for (error of getErrors('name', 'Name'); track error) {
+        <mat-error>{{error}}</mat-error>
       }
     </mat-form-field>
 
     <mat-form-field>
       <mat-label>ISO 3166-1 ALPHA-2 Country code (2 letters)</mat-label>
       <input matInput formControlName="iso2" required placeholder="Insert the ISO2 Country code">
-      @if (form.controls['iso2'].errors?.['required']) {
+      @for (error of getErrors('iso2', 'ISO 3166-1 ALPHA-2 Country code'); track error) {
         <mat-error>
-          ISO 3166-1 ALPHA-2 Country code is required.
-        </mat-error>
-      }
-      @if (form.controls['iso2'].errors?.['pattern']) {
-        <mat-error>
-          ISO3166-1 ALPHA-2 Country code requires 2 letters.
-        </mat-error>
-      }
-      @if (form.controls['iso2'].errors?.['isDupeField']) {
-        <mat-error>
-          This code already exists: please choose another.
+          {{error}}
         </mat-error>
       }
     </mat-form-field>
@@ -42,19 +25,9 @@
     <mat-form-field>
       <mat-label>ISO 3166-1 ALPHA-3 Country code (3 letters)</mat-label>
       <input matInput formControlName="iso3" required placeholder="Insert the ISO3 Country code">
-      @if (form.controls['iso3'].errors?.['required']) {
+      @for (error of getErrors('iso3', 'ISO 3166-1 ALPHA-3 Country code'); track error) {
         <mat-error>
-          ISO 3166-1 ALPHA-3 Country code is required.
-        </mat-error>
-      }
-      @if (form.controls['iso3'].errors?.['pattern']) {
-        <mat-error>
-          ISO3166-1 ALPHA-3 Country code requires 3 letters.
-        </mat-error>
-      }
-      @if (form.controls['iso3'].errors?.['isDupeField']) {
-        <mat-error>
-          This code already exists: please choose another.
+          {{error}}
         </mat-error>
       }
     </mat-form-field>
