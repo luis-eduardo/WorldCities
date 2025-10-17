@@ -1,11 +1,11 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { City } from './city';
+import {City} from './city';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {debounceTime, distinctUntilChanged, Subject} from 'rxjs';
+import {CityService} from './city.service';
+import {Paging} from '../base.service';
 
 @Component({
   selector: 'app-cities',
@@ -28,7 +28,8 @@ export class CitiesComponent implements OnInit {
 
   filterTextChanged: Subject<string> = new Subject<string>();
 
-  constructor(private http: HttpClient) { }
+  constructor(private cityService: CityService) {
+  }
 
   ngOnInit(): void {
     this.loadData();
@@ -43,10 +44,22 @@ export class CitiesComponent implements OnInit {
   }
 
   getData(event: PageEvent) {
-    const url = environment.baseUrl + 'api/cities';
-    const params = this.setParams(event);
+    const paging: Paging = {
+      pageIndex: event.pageIndex,
+      pageSize: event.pageSize,
+      sortColumn: (this.sort)
+        ? this.sort.active
+        : this.defaultSortColumn,
+      sortOrder: (this.sort)
+        ? this.sort.direction
+        : this.defaultSortOrder,
+      filterColumn: (this.filterQuery)
+        ? this.defaultFilterColumn : null,
+      filterQuery: (this.filterQuery)
+        ? this.filterQuery : null,
+    };
 
-    this.http.get<any>(url, { params })
+    this.cityService.getData(paging)
       .subscribe({
         next: (result) => {
           this.paginator.length = result.totalCount;
@@ -58,29 +71,8 @@ export class CitiesComponent implements OnInit {
       });
   }
 
-  private setParams(event: PageEvent) {
-    let params = new HttpParams()
-      .set("pageIndex", event.pageIndex.toString())
-      .set("pageSize", event.pageSize.toString())
-      .set("sortColumn", (this.sort)
-        ? this.sort.active
-        : this.defaultSortColumn
-      )
-      .set("sortOrder", (this.sort)
-        ? this.sort.direction
-        : this.defaultSortOrder
-      );
-
-    if (this.filterQuery) {
-      params = params
-        .set("filterColumn", this.defaultFilterColumn)
-        .set("filterQuery", this.filterQuery);
-    }
-    return params;
-  }
-
   onFilterTextChanged(filterText: string) {
-    if(!this.filterTextChanged.observed) {
+    if (!this.filterTextChanged.observed) {
       this.filterTextChanged
         .pipe(debounceTime(1000), distinctUntilChanged())
         .subscribe(query => {

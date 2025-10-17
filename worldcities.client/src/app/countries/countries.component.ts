@@ -3,9 +3,9 @@ import {MatTableDataSource} from '@angular/material/table';
 import {Country} from './country';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {environment} from '../../environments/environment';
 import {debounceTime, distinctUntilChanged, Subject} from 'rxjs';
+import {CountryService} from './country.service';
+import {Paging} from '../base.service';
 
 @Component({
   selector: 'app-countries',
@@ -28,7 +28,7 @@ export class CountriesComponent implements OnInit {
 
   filterTextChanged: Subject<string> = new Subject<string>();
 
-  constructor(private http: HttpClient) {}
+  constructor(private countryService: CountryService) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -43,10 +43,22 @@ export class CountriesComponent implements OnInit {
   }
 
   getData(event: PageEvent) {
-    const url = environment.baseUrl + 'api/countries';
-    const params = this.setParams(event);
+    const paging: Paging = {
+      pageIndex: event.pageIndex,
+      pageSize: event.pageSize,
+      sortColumn: (this.sort)
+        ? this.sort.active
+        : this.defaultSortColumn,
+      sortOrder: (this.sort)
+        ? this.sort.direction
+        : this.defaultSortOrder,
+      filterColumn: (this.filterQuery)
+        ? this.defaultFilterColumn : null,
+      filterQuery: (this.filterQuery)
+        ? this.filterQuery : null,
+    };
 
-    this.http.get<any>(url, { params })
+    this.countryService.getData(paging)
       .subscribe({
         next: (result) => {
           this.paginator.length = result.totalCount;
@@ -56,27 +68,6 @@ export class CountriesComponent implements OnInit {
         },
         error: (error) => console.error(error)
       });
-  }
-
-  private setParams(event: PageEvent) {
-    let params = new HttpParams()
-      .set("pageIndex", event.pageIndex.toString())
-      .set("pageSize", event.pageSize.toString())
-      .set("sortColumn", (this.sort)
-        ? this.sort.active
-        : this.defaultSortColumn
-      )
-      .set("sortOrder", (this.sort)
-        ? this.sort.direction
-        : this.defaultSortOrder
-      );
-
-    if (this.filterQuery) {
-      params = params
-        .set("filterColumn", this.defaultFilterColumn)
-        .set("filterQuery", this.filterQuery);
-    }
-    return params;
   }
 
   onFilterTextChanged(filterText: string) {

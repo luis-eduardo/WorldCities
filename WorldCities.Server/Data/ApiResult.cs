@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EFCore.BulkExtensions;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WorldCities.Server.Data;
 
@@ -71,6 +73,10 @@ public class ApiResult<T> : ApiResultBase<T>
         source = source
             .Skip(pageIndex * pageSize)
             .Take(pageSize);
+
+        #if DEBUG
+        var sql = source.ToQueryString();
+        #endif
 
         var data = await source.ToListAsync();
 

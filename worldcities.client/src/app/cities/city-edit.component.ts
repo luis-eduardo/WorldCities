@@ -3,10 +3,11 @@ import {AbstractControl, AsyncValidatorFn, FormControl, FormGroup, Validators} f
 import {City} from './city';
 import {Country} from '../countries/country';
 import {ActivatedRoute, Router} from '@angular/router';
-import {HttpClient, HttpParams} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {map, Observable} from 'rxjs';
 import {BaseFormComponent} from '../base-form.component';
+import {CityService} from './city.service';
+import {Paging} from '../base.service';
 
 @Component({
   selector: 'app-city-edit',
@@ -24,7 +25,7 @@ export class CityEditComponent
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private http: HttpClient,
+    private cityService: CityService,
   ) {
     super();
   }
@@ -69,8 +70,7 @@ export class CityEditComponent
       return;
     }
 
-    const url = environment.baseUrl + 'api/cities/' + this.id;
-    this.http.get<City>(url).subscribe({
+    this.cityService.get(this.id).subscribe({
       next: (result) => {
         this.city = result;
         this.title = `Edit - ${this.city.name}`;
@@ -82,13 +82,14 @@ export class CityEditComponent
 
   private loadCountries() {
     const url = environment.baseUrl + 'api/countries/';
-    const params = new HttpParams()
-      .set("pageIndex", 0)
-      .set("pageSize", 999)
-      .set("sortColumn", "name")
-      .set("sortOrder", "asc");
+    const paging: Paging = {
+      pageIndex: 0,
+      pageSize: 999,
+      sortColumn: "name",
+      sortOrder: "asc",
+    };
 
-    this.http.get(url, { params })
+    this.cityService.getCountries(paging)
       .subscribe({
         next: (result: any) => {
           this.countries = result.data;
@@ -109,8 +110,7 @@ export class CityEditComponent
     city.countryId = +this.form.controls['countryId'].value;
 
     if (this.id) {
-      const url = environment.baseUrl + 'api/cities/' + city.id;
-      this.http.put<City>(url, city)
+      this.cityService.put(city)
         .subscribe({
           next: (result: any) => {
             console.log(`City ${city!.id} has been saved successfully.`);
@@ -119,8 +119,7 @@ export class CityEditComponent
           error: (error: any) => console.error(error)
         });
     } else {
-      const url = environment.baseUrl + 'api/cities';
-      this.http.post<City>(url, city)
+      this.cityService.post(city)
         .subscribe({
           next: (result: any) => {
             console.log(`City ${result.id} has been created.`);
@@ -141,7 +140,7 @@ export class CityEditComponent
       city.countryId = +this.form.controls['countryId'].value;
 
       const url = environment.baseUrl + 'api/cities/isDupeCity';
-      return this.http.post<boolean>(url, city).pipe(
+      return this.cityService.isDupeCity(city).pipe(
         map(result => {
           return (result ? { isDupeCity: true } : null);
         })
