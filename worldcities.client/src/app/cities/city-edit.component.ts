@@ -1,10 +1,10 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AbstractControl, AsyncValidatorFn, FormControl, FormGroup, Validators} from '@angular/forms';
 import {City} from './city';
 import {Country} from '../countries/country';
 import {ActivatedRoute, Router} from '@angular/router';
 import {environment} from '../../environments/environment';
-import {map, Observable} from 'rxjs';
+import {map, Observable, Subject, takeUntil} from 'rxjs';
 import {BaseFormComponent} from '../base-form.component';
 import {CityService} from './city.service';
 import {Paging} from '../base.service';
@@ -16,11 +16,14 @@ import {Paging} from '../base.service';
   styleUrl: './city-edit.component.scss'
 })
 export class CityEditComponent
-  extends BaseFormComponent implements OnInit {
+  extends BaseFormComponent implements OnInit, OnDestroy {
+
   title?: string;
   city?: City;
   id?: number;
-  countries?: Country[];
+  countries?: Observable<Country[]>;
+
+  private destroySubject = new Subject();
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -56,7 +59,40 @@ export class CityEditComponent
       }
     }
 
+    this.form.valueChanges
+      .pipe(takeUntil(this.destroySubject))
+      .subscribe(() => {
+        if(!this.form.dirty) {
+          this.log("Form Model has been loaded.");
+        }
+        else {
+          this.log("Form was updated by the user.")
+        }
+      });
+
+    this.form.get("name")!.valueChanges
+      .pipe(takeUntil(this.destroySubject))
+      .subscribe(() => {
+        if(!this.form.dirty) {
+          this.log("Name has been loaded with initial values.");
+        }
+        else {
+          this.log("Name was updated by the user.");
+        }
+      })
+
     this.loadData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroySubject.next(true);
+    this.destroySubject.complete();
+  }
+
+  private log(str: string) {
+    console.log("["
+      + new Date().toLocaleString()
+      + "] " + str);
   }
 
   private loadData() {
@@ -81,7 +117,6 @@ export class CityEditComponent
   }
 
   private loadCountries() {
-    const url = environment.baseUrl + 'api/countries/';
     const paging: Paging = {
       pageIndex: 0,
       pageSize: 999,
@@ -89,13 +124,8 @@ export class CityEditComponent
       sortOrder: "asc",
     };
 
-    this.cityService.getCountries(paging)
-      .subscribe({
-        next: (result: any) => {
-          this.countries = result.data;
-        },
-        error: (error: any) => console.error(error)
-      });
+    this.countries = this.cityService.getCountries(paging)
+      .pipe(map(x => x.data));
   }
 
   onSubmit() {

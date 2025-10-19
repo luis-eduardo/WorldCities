@@ -1,5 +1,5 @@
 <div class="city-edit">
-  <h1>{{title}}</h1>
+  <h1>{{ title }}</h1>
   @if (id && !city) {
     <p><em>Loading...</em></p>
   }
@@ -19,7 +19,7 @@
       <input matInput formControlName="name" required placeholder="Type a name">
       @for (error of getErrors('name', 'Name'); track error) {
         <mat-error>
-          {{error}}
+          {{ error }}
         </mat-error>
       }
     </mat-form-field>
@@ -29,7 +29,7 @@
       <input matInput formControlName="latitude" required placeholder="Insert latitude">
       @for (error of getErrors('latitude', 'Latitude'); track error) {
         <mat-error>
-          {{error}}
+          {{ error }}
         </mat-error>
       }
     </mat-form-field>
@@ -39,16 +39,16 @@
       <input matInput formControlName="longitude" required placeholder="Insert longitude">
       @for (error of getErrors('longitude', 'Longitude'); track error) {
         <mat-error>
-          {{error}}
+          {{ error }}
         </mat-error>
       }
     </mat-form-field>
 
-    @if (countries) {
+    @if (countries | async) {
       <mat-form-field>
         <mat-label>Select a Country...</mat-label>
         <mat-select id="countryId" formControlName="countryId">
-          @for (country of countries; track country.id) {
+          @for (country of countries | async; track country.id) {
             <mat-option [value]="country.id">
               {{ country.name }}
             </mat-option>
@@ -56,7 +56,7 @@
         </mat-select>
         @for (error of getErrors('countryId', 'Country'); track error) {
           <mat-error>
-            {{error}}
+            {{ error }}
           </mat-error>
         }
       </mat-form-field>
@@ -71,4 +71,16 @@
       </button>
     </div>
   </form>
+</div>
+
+<!-- Form debug info panel -->
+<div class="info">
+  <div class="info-header">Form Debug Info</div>
+  <div class="info-body">
+    <div class="info-label"> Form Value:</div>
+    <div class="info-value"> {{ form.value | json }}</div>
+    <hr/>
+    <div class="info-label"> Form Status:</div>
+    <div class="info-value"> {{ form.status | json }}</div>
+  </div>
 </div>
