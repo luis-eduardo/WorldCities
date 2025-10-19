@@ -3,5 +3,6 @@
     <Build />
     <Deploy />
   </Project>
+  <Project Path="WorldCities.Server.Tests/WorldCities.Server.Tests.csproj" />
   <Project Path="WorldCities.Server/WorldCities.Server.csproj" />
 </Solution>
