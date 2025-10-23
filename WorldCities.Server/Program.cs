@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.MSSqlServer;
@@ -44,6 +45,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
         options.Password.RequiredLength = 8;
     }
     )
+    .AddApiEndpoints()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddAuthentication(options =>
@@ -66,7 +68,8 @@ builder.Services.AddAuthentication(options =>
                 System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecurityKey"]!)
                 )
         };
-    });
+    })
+    .AddBearerToken(IdentityConstants.BearerScheme);
 
 builder.Services.AddScoped<JwtHandler>();
 
@@ -81,13 +84,14 @@ app.MapStaticAssets();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.MapIdentityApi<ApplicationUser>();
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
