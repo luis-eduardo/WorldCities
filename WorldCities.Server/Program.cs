@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.MSSqlServer;
 using WorldCities.Server.Data;
+using WorldCities.Server.Data.GraphQL;
 using WorldCities.Server.Data.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -73,6 +74,13 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<JwtHandler>();
 
+builder.Services.AddGraphQLServer()
+    .AddAuthorization()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddFiltering()
+    .AddSorting();
+
 builder.Services.AddCors(options => 
     options.AddPolicy(name: "AngularPolicy",
         cfg => {
@@ -103,6 +111,7 @@ app.UseAuthorization();
 app.UseCors("AngularPolicy");
 app.MapIdentityApi<ApplicationUser>();
 app.MapControllers();
+app.MapGraphQL("/api/graphql");
 
 app.MapFallbackToFile("/index.html");
 

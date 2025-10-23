@@ -1,9 +1,11 @@
-import {Injectable} from '@angular/core';
-import {ApiResult, BaseService, Paging} from '../base.service';
-import {City} from './city';
-import {Observable} from 'rxjs';
-import {HttpClient} from '@angular/common/http';
-import {Country} from '../countries/country';
+import { Injectable } from '@angular/core';
+import { ApiResult, BaseService, Paging } from '../base.service';
+import { City } from './city';
+import { map, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Country } from '../countries/country';
+import { Apollo } from 'apollo-angular';
+import { gql } from '@apollo/client';
 
 @Injectable({
   providedIn: 'root'
@@ -11,29 +13,122 @@ import {Country} from '../countries/country';
 export class CityService
   extends BaseService<City> {
 
-  constructor(http: HttpClient) {
+  constructor(
+    http: HttpClient,
+    private apollo: Apollo
+  ) {
     super(http);
   }
 
   override getData(paging: Paging): Observable<ApiResult<City>> {
-    const url = this.getUrl("api/cities");
-    const params = this.setHttpParams(paging);
-    return this.http.get<ApiResult<City>>(url, { params });
+    return this.apollo
+      .query({
+        query: gql`
+          query GetCitiesApiResult
+          (
+            $pageIndex: Int!,
+            $pageSize: Int!,
+            $sortColumn: String,
+            $sortOrder: String,
+            $filterColumn: String,
+            $filterQuery: String)
+            {
+              citiesApiResult(
+                pageIndex: $pageIndex
+                pageSize: $pageSize
+                sortColumn: $sortColumn
+                sortOrder: $sortOrder
+                filterColumn: $filterColumn
+                filterQuery: $filterQuery
+              )
+              {
+                data {
+                  id
+                  name
+                  latitude
+                  longitude
+                  countryId
+                  countryName
+                },
+                pageIndex
+                pageSize
+                totalCount
+                totalPages
+                sortColumn
+                sortOrder
+                filterColumn
+                filterQuery
+              }
+            }
+        `,
+        variables: {
+          ...paging
+        }
+      })
+      .pipe(map((result: any) => result.data.citiesApiResult));
   }
 
   override get(id: number): Observable<City> {
-    const url = this.getUrl(`api/cities/${id}`);
-    return this.http.get<City>(url);
+    return this.apollo
+      .query({
+        query: gql`
+          query GetCityById($id: Int!) {
+            cities(where: { id: { eq: $id } }) {
+              nodes {
+                id
+                name
+                latitude
+                longitude
+                countryId
+              }
+            }
+          }
+        `,
+        variables: { id },
+      })
+      .pipe(map((result: any) => result.data.cities.nodes[0]));
   }
 
   override put(item: City): Observable<City> {
-    const url = this.getUrl(`api/cities/${item.id}`);
-    return this.http.put<City>(url, item);
+    return this.apollo
+      .mutate({
+        mutation: gql`
+          mutation UpdateCity($city: CityDTOInput!) {
+            updateCity(cityDTO: $city) {
+              id
+              name
+              latitude
+              longitude
+              countryId
+            }
+          }
+        `,
+        variables: {
+          city: this.stripTypenames(item)
+        }
+      })
+      .pipe(map((result: any) => result.data.updateCity));
   }
 
   override post(item: City): Observable<City> {
-    const url = this.getUrl("api/cities/");
-    return this.http.post<City>(url, item);
+    return this.apollo
+      .mutate({
+        mutation: gql`
+          mutation AddCity($city: CityDTOInput!) {
+            addCity(cityDTO: $city) {
+              id
+              name
+              latitude
+              longitude
+              countryId
+            }
+          }
+        `,
+        variables: {
+          city: this.stripTypenames(item)
+        }
+      })
+      .pipe(map((result: any) => result.data.addCity));
   }
 
   getCountries(paging: Paging): Observable<ApiResult<Country>> {

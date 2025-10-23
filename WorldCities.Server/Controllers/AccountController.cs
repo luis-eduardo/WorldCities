@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using WorldCities.Server.Data;
@@ -10,7 +9,6 @@ namespace WorldCities.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController(
-        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         JwtHandler jwtHandler) : ControllerBase
     {

@@ -1,6 +1,6 @@
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import {environment} from '../environments/environment';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
 export abstract class BaseService<T> {
   protected constructor(
@@ -33,6 +33,24 @@ export abstract class BaseService<T> {
     }
     return httpParams;
   }
+
+  protected stripTypenames<T>(value: T): T {
+    if (Array.isArray(value)) {
+      return value.map(v => this.stripTypenames(v)) as unknown as T;
+    }
+
+    if (value && typeof value === "object") {
+      const out: Record<string, unknown> = {};
+      for (const key of Object.keys(value as Record<string, unknown>)) {
+        if (key === "__typename") continue;
+        out[key] = this.stripTypenames((value as Record<string, unknown>)[key]);
+      }
+      return out as T;
+    }
+
+    return value;
+  }
+
 }
 
 export interface ApiResult<T> {

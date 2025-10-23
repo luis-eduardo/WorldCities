@@ -23,11 +23,14 @@
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@angular/service-worker": "^19.2.0",
+    "apollo-angular": "^12.1.0",
     "jest-editor-support": "*",
     "run-script-os": "*",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
+    "zone.js": "~0.15.0",
+    "@apollo/client": "^4.0.1",
+    "graphql": "^16"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.2.1",
