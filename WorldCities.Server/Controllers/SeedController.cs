@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
@@ -10,26 +12,97 @@ namespace WorldCities.Server.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class SeedController : ControllerBase
+[Authorize(Roles = "Administrator")]
+public class SeedController(
+    ApplicationDbContext context,
+    RoleManager<IdentityRole> roleManager,
+    UserManager<ApplicationUser> userManager,
+    IWebHostEnvironment env,
+    IConfiguration configuration
+    ) : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IWebHostEnvironment _env;
-
-    public SeedController(ApplicationDbContext context, IWebHostEnvironment env)
+    [HttpGet]
+    public async Task<ActionResult> CreateDefaultUsers()
     {
-        _context = context;
-        _env = env;
+        string role_RegisteredUser = "RegisteredUser";
+        string role_Administrator = "Administrator";
+
+        if (await roleManager.FindByNameAsync(role_RegisteredUser) == null)
+        {
+            await roleManager.CreateAsync(new IdentityRole(role_RegisteredUser));
+        }
+
+        if (await roleManager.FindByNameAsync(role_Administrator) == null)
+        {
+            await roleManager.CreateAsync(new IdentityRole(role_Administrator));
+        }
+
+        var addedUsers = new List<ApplicationUser>();
+        var email_Admin = "admin@email.com";
+        if (await userManager.FindByEmailAsync(email_Admin) == null)
+        {
+            var user_Admin = new ApplicationUser
+            {
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = email_Admin,
+                Email = email_Admin
+            };
+            var password_Admin = configuration["DefaultPasswords:Administrator"];
+            var result = await userManager.CreateAsync(user_Admin, password_Admin!);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(user_Admin, role_Administrator);
+                await userManager.AddToRoleAsync(user_Admin, role_RegisteredUser);
+
+                user_Admin.EmailConfirmed = true;
+                user_Admin.LockoutEnabled = false;
+
+                addedUsers.Add(user_Admin);
+            }
+        }
+
+        var email_User = "user@email.com";
+        if(await userManager.FindByEmailAsync(email_User) == null)
+        {
+            var user_User = new ApplicationUser
+            {
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = email_User,
+                Email = email_User
+            };
+            var password_User = configuration["DefaultPasswords:RegisteredUser"];
+            var result = await userManager.CreateAsync(user_User, password_User!);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(user_User, role_RegisteredUser);
+                user_User.EmailConfirmed = true;
+                user_User.LockoutEnabled = false;
+                addedUsers.Add(user_User);
+            }
+        }
+
+        if(addedUsers.Count > 0)
+        {
+            await context.SaveChangesAsync();
+        }
+
+        return new JsonResult(new
+        {
+            addedUsers.Count,
+            Users = addedUsers
+        });
     }
+
 
     [HttpGet]
     public async Task<ActionResult> Import()
     {
         // prevents non-development environments from running this method
-        if (!_env.IsDevelopment())
+        if (!env.IsDevelopment())
             throw new SecurityException("Not allowed");
 
         var path = Path.Combine(
-                _env.ContentRootPath,
+                env.ContentRootPath,
                 "Data/Source/worldcities.xlsx");
 
         using var stream = System.IO.File.OpenRead(path);
@@ -49,7 +122,7 @@ public class SeedController : ControllerBase
         // create a lookup dictionary 
         // containing all the countries already existing 
         // into the Database (it will be empty on first run).
-        var countriesByName = _context.Countries
+        var countriesByName = context.Countries
             .AsNoTracking()
             .ToDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
 
@@ -76,7 +149,7 @@ public class SeedController : ControllerBase
             };
 
             // add the new country to the DB context 
-            await _context.Countries.AddAsync(country);
+            await context.Countries.AddAsync(country);
 
             // store the country in our lookup to retrieve its Id later on
             countriesByName.Add(countryName, country);
@@ -87,12 +160,12 @@ public class SeedController : ControllerBase
 
         // save all the countries into the Database 
         if (numberOfCountriesAdded > 0)
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
         // create a lookup dictionary
         // containing all the cities already existing 
         // into the Database (it will be empty on first run). 
-        var cities = _context.Cities
+        var cities = context.Cities
             .AsNoTracking()
             .ToDictionary(x => (
                 x.Name,
@@ -132,7 +205,7 @@ public class SeedController : ControllerBase
             };
 
             // add the new city to the DB context 
-            _context.Cities.Add(city);
+            context.Cities.Add(city);
 
             // increment the counter 
             numberOfCitiesAdded++;
@@ -140,7 +213,7 @@ public class SeedController : ControllerBase
 
         // save all the cities into the Database 
         if (numberOfCitiesAdded > 0)
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
         return new JsonResult(new
         {
